@@ -91,7 +91,7 @@ index = faiss.read_index(INDEX_PATH)
 logger.info("FAISS index loaded: %d vectors", index.ntotal)
 
 with open(ID_MAP_PATH, "r", encoding="utf-8") as f:
-    id_map: dict[str, str] = json.load(f)
+    id_map: list[str] = json.load(f)
 
 logger.info("Loaded id_map with %d entries", len(id_map))
 logger.info("LLM provider: %s, model: %s", LLM_PROVIDER, LLM_MODEL)
@@ -271,7 +271,7 @@ def search_faiss(query_vector: np.ndarray, top_k: int) -> list[tuple[str, float]
     for idx, score in zip(indices[0], distances[0]):
         if idx < 0:
             continue
-        tweet_id = id_map[str(idx)]
+        tweet_id = id_map[int(idx)]
         results.append((tweet_id, float(score)))
     return results
 
@@ -321,7 +321,7 @@ def get_filters() -> dict:
 @app.get("/search")
 def search(
     text: Optional[str] = None,
-    top_k: int = Query(default=5, ge=1, le=500),
+    top_k: int = Query(default=100, ge=1, le=10000),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
     start_date: Optional[str] = None,
@@ -397,7 +397,7 @@ def search(
 @app.get("/query")
 def query_with_llm(
     text: str = Query(..., min_length=1),
-    top_k: int = Query(default=5, ge=1, le=500),
+    top_k: int = Query(default=100, ge=1, le=10000),
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
     year: Optional[int] = None,
