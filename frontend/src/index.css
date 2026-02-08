@@ -1,0 +1,239 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Geist:wght@300;400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+/* ----------------------------------------------------------------
+   Design System Tokens
+   ---------------------------------------------------------------- */
+:root {
+  /* Elevation */
+  --bg-base: #0c0f0d;
+  --bg-surface: #1a1d1b;
+  --bg-raised: #252a27;
+  --bg-elevated: #323832;
+
+  /* Borders */
+  --border-subtle: #2a2f2c;
+  --border-default: #3a3f3c;
+  --border-emphasis: #4a4f4c;
+
+  /* Text */
+  --text-primary: #fafafa;
+  --text-secondary: #a8a8a8;
+  --text-tertiary: #787878;
+  --text-muted: #585858;
+
+  /* Accent */
+  --accent-camel: #d4a574;
+  --accent-camel-hover: #c9956c;
+  --accent-camel-subtle: #2d251f;
+  --accent-terra: #cd8264;
+  --accent-terra-hover: #b87254;
+  --accent-terra-subtle: #2d211d;
+
+  /* Semantic */
+  --semantic-success: #7ab07a;
+  --semantic-error: #cd6464;
+
+  /* Typography */
+  --font-base: 'Geist', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-mono: 'SF Mono', Monaco, 'Cascadia Code', Consolas, monospace;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-glow-camel: 0 0 20px rgba(212, 165, 116, 0.15);
+  --shadow-glow-terra: 0 0 20px rgba(205, 130, 100, 0.15);
+  --shadow-inset: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* ----------------------------------------------------------------
+   Base
+   ---------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-base);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ----------------------------------------------------------------
+   Utility Classes
+   ---------------------------------------------------------------- */
+
+/* Label pattern: 12px / 600 / 0.06em / uppercase */
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.label-section {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-camel);
+}
+
+/* Input punch-through (Base level) */
+.input-base {
+  background-color: var(--bg-base);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-inset);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-family: var(--font-base);
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+
+.input-base::placeholder {
+  color: var(--text-muted);
+}
+
+.input-base:focus {
+  outline: none;
+  border-color: var(--accent-camel);
+  box-shadow: var(--shadow-inset), 0 0 0 2px var(--accent-camel-subtle);
+}
+
+/* Primary button with gradient + energy */
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-camel), var(--accent-camel-hover));
+  color: var(--bg-base);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.2s;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md), var(--shadow-glow-camel);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Secondary button */
+.btn-secondary {
+  background-color: var(--bg-raised);
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 13px;
+  padding: 6px 14px;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.btn-secondary:hover {
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--border-emphasis);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Tertiary button (ghost) */
+.btn-ghost {
+  background: transparent;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  font-size: 13px;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.btn-ghost:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-raised);
+}
+
+/* Card (Surface level) */
+.card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+}
+
+/* Tag badges */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  background-color: var(--bg-raised);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+.tag-accent {
+  background-color: var(--accent-camel-subtle);
+  color: var(--accent-camel);
+  border-color: transparent;
+}
+
+.tag-terra {
+  background-color: var(--accent-terra-subtle);
+  color: var(--accent-terra);
+  border-color: transparent;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-emphasis);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}

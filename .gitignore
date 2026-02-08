@@ -1,0 +1,37 @@
+# Data files (too large for GitHub)
+backend/data/tweets.db
+backend/data/tweets.index
+backend/data/id_map.json
+
+# Python
+backend/venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Environment
+.env
+backend/.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
