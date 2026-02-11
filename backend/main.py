@@ -447,12 +447,31 @@ def query_with_llm(
         if not filtered:
             logger.warning("No tweets matched filters — LLM receives no context")
 
-        # Build context from tweet summaries and insights
+        # Build rich context from tweet data
+        def format_tweet_context(i: int, m: dict) -> str:
+            parts = [f"Tweet {i + 1} (@{m.get('handle', '?')}, {m.get('date', '?')}):"]
+            parts.append(f"Text: {m.get('text', '')}")
+            if m.get("tags"):
+                parts.append(f"Tags: {', '.join(m['tags'])}")
+            if m.get("vision_captions"):
+                parts.append(f"Image: {'; '.join(m['vision_captions'])}")
+            if m.get("image_tags"):
+                img_labels = [
+                    t["primary_tag"] for t in m["image_tags"]
+                    if isinstance(t, dict) and "primary_tag" in t
+                ]
+                if img_labels:
+                    parts.append(f"Image tags: {', '.join(img_labels)}")
+            if m.get("summary"):
+                parts.append(f"Summary: {m['summary']}")
+            if m.get("insights"):
+                parts.append(f"Insights: {', '.join(m['insights'])}")
+            return "\n".join(parts)
+
         context = "\n\n".join(
-            f"Tweet {i + 1}: {m['summary']}\nInsights: {', '.join(m['insights'])}"
-            for i, m in enumerate(filtered)
+            format_tweet_context(i, m) for i, m in enumerate(filtered)
         )
-        user_prompt = f"Here are tweet insights:\n\n{context}\n\nExplain: {text}"
+        user_prompt = f"Here are tweets from a crypto discourse corpus:\n\n{context}\n\nBased on these tweets, answer: {text}"
 
         system_prompt = "You are a crypto discourse analyst."
         llm_response = call_llm(llm_client, system_prompt, user_prompt)

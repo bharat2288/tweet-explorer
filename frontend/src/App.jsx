@@ -49,7 +49,7 @@ export default function App() {
 
   // Build URL params from state (maps plural frontend keys to singular backend params)
   const buildParams = (customPage = 1) => {
-    const params = new URLSearchParams({ page: customPage, page_size: pageSize, top_k: 10000 });
+    const params = new URLSearchParams({ page: customPage, page_size: pageSize, top_k: 100 });
     if (queryText) params.append("text", queryText);
 
     ["tags", "image_tags", "image_subtags", "handles"].forEach((key) => {

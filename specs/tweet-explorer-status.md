@@ -34,10 +34,11 @@
 - README.md with research context + technical docs
 - Git initialized and published to GitHub
 
-### Not Yet Tested
-- Backend startup with data files (no venv created yet)
-- Frontend dev server connecting to live backend
-- Full end-to-end search workflow
+### Tested & Working
+- Backend starts, FAISS index loads (79,432 vectors)
+- Semantic search returns results (tested "diamond hands", "failed")
+- Metadata-only search works (empty search, tag filters)
+- Frontend connects to backend successfully
 
 ---
 
