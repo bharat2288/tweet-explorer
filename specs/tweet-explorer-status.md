@@ -11,6 +11,8 @@
 |---------|-------|------|--------|
 | `architect-makeover` | Explore archived codebase, plan refactoring scope | 2026-02-08 | ✓ |
 | `implementation` | Copy, refactor, decompose, design system, publish | 2026-02-08 | ✓ |
+| `pipeline-report` | Document full pipeline, fix RAG augmentation, reduce top_k | 2026-02-11 | ✓ |
+| `screenshots-research` | Old frontend screenshots, pipeline enrichment research, fine-tuning discovery | 2026-02-11 | ✓ |
 
 **Status key:** ✓ Complete | 🔄 In Progress | ⏸ Paused | ❌ Abandoned
 
@@ -24,7 +26,21 @@
 - Registered in Dev Server Manager (backend 8400, frontend 5177)
 - Frontend build passes (`npm run build`)
 
-### Completed This Session
+### Completed Last Session (2026-02-11, screenshots-research)
+- Set up old "Twitter DB" frontend locally at `C:\Users\bhara\dev\twitter-db-old\` for before/after screenshots (servers on ports 8001/5180, currently stopped but ready to restart)
+- Took before/after screenshots comparing generic Tailwind UI vs design system version
+- Researched exact enrichment pipeline mechanics — traced all 6 stages from CSV→JSON through fine-tuning to vectorization
+- **Discovered fine-tuning arc was missing from pipeline report** — production enrichments came from fine-tuned GPT-4.1 (`ft:gpt-4.1-2025-04-14:bhasuri:llm-enrichment-gpt4-1:BXnhup29`), not vanilla API calls
+- Updated NOTES-vibe-coding-pipeline-report.md: added fine-tuning section to 3g, new "apprenticeship" LLM role in taxonomy, file inventory for fine-tuning scripts
+
+### Completed Prior Session (2026-02-11, pipeline-report)
+- Wrote comprehensive pipeline report (NOTES-vibe-coding-pipeline-report.md, ~850 lines)
+- Fixed RAG augmentation: /query now sends original text, tags, image descriptions, image tags, summary, insights (was summary+insights only)
+- Reduced search top_k from 10000 to 100 for meaningful semantic results
+- Tested RAG fix: GPT-4o now cites specific tweets by number without prompt engineering
+- Deep discussion of vectorization, FAISS, embedding models, RAG architecture documented in report
+
+### Completed Prior Session (2026-02-08)
 - Copied source from archive to new project location
 - Created .gitignore, .env.example
 - Backend rewritten: type hints, extracted helpers, configurable LLM (OpenAI/Anthropic), fixed imports, relative data paths
@@ -80,11 +96,11 @@
 
 > Specific, actionable tasks. First item = start here.
 
-- [ ] Create backend venv, install requirements, verify backend starts with data files
-- [ ] Start frontend dev server, verify it connects to backend
-- [ ] Test full search workflow end-to-end (semantic search + filters + LLM panel)
 - [ ] Visual review of frontend — check design system application looks right in browser
+- [ ] Test RAG with various queries now that augmentation is enriched
 - [ ] Consider: add Anthropic model to LLM panel UI (currently backend-only config)
+- [ ] Consider: pre-retrieval filtering (FAISS ID filtering) to improve precision
+- [ ] Consider: adjustable top_k in UI for power users
 
 ---
 
