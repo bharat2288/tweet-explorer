@@ -457,6 +457,47 @@ def enrich_text(tweet_text, tag):
 
 **This is a DIFFERENT use of LLMs from the coding phase.** When writing the Python scripts, the LLM was *infrastructure* — a plumber helping build the pipes. Here, the LLM is doing *interpretive work* — reading tweets and explaining their discursive significance. The ethnographic judgment enters through the prompt design (which tags to enrich, what "relevance" means) and through the prior tagging (only tagged tweets get enriched, and the tags came from ethnographic categories).
 
+**However, `llm_enrich.py` was only the prototype.** Running vanilla GPT-4.1 at 0.5s/call across 79K tweets would take 11+ hours of continuous API calls. The actual production enrichment used a different approach entirely: fine-tuning.
+
+#### The Fine-Tuning Arc (May 16–18, 2025)
+
+**The idea:** Rather than call a generic model 79,000 times with the same prompt template, train a specialized model that *already knows* how to produce structured enrichments in the researcher's analytical style. Use a small set of vanilla GPT-4.1 enrichments as training examples, then run the fine-tuned model at scale with concurrency.
+
+**Training data preparation:** `prepare_llm_enrichment_csv.py` extracted 79,452 tweets from the merged tagged JSONs, filtering for tweets with regex tags. From these, 1,964 examples that had already been enriched by vanilla GPT-4.1 (via the prototype `llm_enrich.py`) were formatted into `llm_enrichment_dataset_chat.jsonl` — OpenAI's chat completions training format:
+
+```
+System: You are analyzing Twitter discourse...
+User: Tweet: [text] / Tags: [regex tags] / Image Caption: [if any] / Image Tags: [if any]
+Assistant: Summary: [enrichment] / Insights: [observations]
+```
+
+**The four attempts (all May 16, 2025):**
+
+| Time | Base Model | Suffix | Status | Notes |
+|------|-----------|--------|--------|-------|
+| 5:19pm | gpt-3.5-turbo-0125 | `llm-enrichment-v1` | **Failed** | Likely training data format issues |
+| 5:23pm | gpt-3.5-turbo-0125 | `llm-enrichment-v2` | **Succeeded** | Format fixed; used for first 25K tweets |
+| 6:30pm | gpt-4.1-2025-04-14 | `llm-enrichment-gpt4.1` | **Failed** | Model-specific validation failure |
+| 6:42pm | gpt-4.1-2025-04-14 | `llm-enrichment-gpt4-1` | **Succeeded** | 2,358,006 trained tokens, train loss 0.563 |
+
+The progression from v1→v2 on GPT-3.5, then the failed→succeeded retry on GPT-4.1, shows iterative debugging of the training data format — a pattern consistent with "vibe coding" the fine-tuning process itself.
+
+**Production deployment — two models, then comparison:**
+
+- **May 17:** `batch_llm_enrichment.py` ran the fine-tuned GPT-3.5 model (`ft:gpt-3.5-turbo-0125:bhasuri:llm-enrichment-v2:BXmNHTtZ`) on the first 25,000 tweets → `enriched_tweets.jsonl` (93 MB). Sequential processing with checkpointing.
+
+- **May 18:** `batch_llm_enrichment_gpt4.py` ran the fine-tuned GPT-4.1 model (`ft:gpt-4.1-2025-04-14:bhasuri:llm-enrichment-gpt4-1:BXnhup29`) on the **entire 79,452 tweets** → `enriched_tweets_gpt41.jsonl` (84 MB). 10 concurrent workers — dramatically faster than the vanilla prototype's sequential 0.5s/call approach.
+
+- **Comparison:** `compare_gpt_enrichment.py` produced `enrichment_comparison.xlsx` — a side-by-side quality comparison of GPT-3.5 vs GPT-4.1 enrichments on the same tweets. The GPT-4.1 fine-tune won.
+
+- **Final merge:** `update_llm_enrichment_to_master.py` merged the GPT-4.1 enrichments back into the master JSON files in `merged_tags_final/`.
+
+**What this means:** The `summary` and `insights` fields in the final `tweets.db` — the data that Tweet Explorer queries — were produced by a **fine-tuned** GPT-4.1, not by vanilla API calls. The fine-tuned model had learned the researcher's analytical style from 1,964 examples: how to relate a tweet to its ethnographic tags, what counts as an "insight," what level of detail a "summary" should contain. This is a third register of LLM usage beyond infrastructure and interpretation — it's **apprenticeship**, where the model was trained to replicate the researcher's own analytical voice.
+
+**The cost economics:** Fine-tuning GPT-4.1 on 2.36M tokens cost roughly $60–80 for training. But the fine-tuned model's per-call inference cost is lower than the base model, and with 10 concurrent workers the full 79K-tweet enrichment completed in hours rather than the 11+ hours the vanilla prototype would have required. The fine-tuning paid for itself in both speed and consistency.
+
+**Location of fine-tuning scripts:** `H:\My Drive\Thesis\Literature\old\ThesisResearch\scripts_misc\fine-tune llm enrich\`
+
 **Output:** `enriched_final/enriched jsons/` (18 parts, 164 MB) → `combined_enriched.json`
 
 ### 3h. Image Processing
@@ -680,13 +721,15 @@ The two-layer structure of `crypto_vocab_tags.json` (generic glossary + ethnogra
 | Proposing regex patterns | Vocabulary refinement | **Translation** (definitions → regex) | Researcher validates patterns against known discourse |
 | Semantic tagging | Stage 3d | **Analytical** (autonomous matching) | Minimal — model decides matches based on embedding similarity |
 | Image captioning | Stage 3h | **Perceptual** (what's in this image?) | Researcher's vocab tags the captions; LLM describes, human categories interpret |
-| Tweet enrichment | Stage 3g | **Interpretive** (why is this relevant to this theme?) | Researcher designed the prompt, chose which tags to enrich, validated output |
+| Tweet enrichment (prototype) | Stage 3g | **Interpretive** (why is this relevant to this theme?) | Researcher designed the prompt, chose which tags to enrich, validated output |
+| Fine-tuning for enrichment | Stage 3g | **Apprenticeship** (learn the researcher's analytical style) | Researcher's prior enrichments became training data; the model learned to replicate the analytical voice |
+| Tweet enrichment (production) | Stage 3g | **Scaled interpretation** (fine-tuned model at 10x concurrency) | Ethnographic judgment encoded in training examples; model applies it autonomously at scale |
 | Vectorization (embedding) | Stage 3i | **Infrastructure** (measurement instrument) | None — the embedding model converts text to vectors mechanically; it doesn't interpret or judge |
 | Semantic search (retrieval) | Query interface | **Infrastructure** (nearest-neighbor lookup) | Researcher poses queries; FAISS does math; the ethnographic tags remain the more reliable filter |
 | RAG synthesis (generation) | Query interface | **Synthesis** (answer questions from evidence) | Experimental — researcher poses questions, but LLM often fell back to training data rather than grounding in retrieved evidence |
 | Topic modeling tokenizer | Phase 1 scripts | **None** (manual) | Researcher hand-built the crypto term vocabulary (80+ terms) |
 
-**The gradient:** LLM involvement ranges from zero (hand-built tokenizers) through infrastructure (code writing, embedding, retrieval) to analytical autonomy (semantic tagging, RAG synthesis). The dissertation's core argument is that the most valuable uses kept ethnographic judgment in the loop — the LLM amplified human categories rather than replacing them. The experimental RAG features (semantic search + Ask LLM) represent an attempt to push toward computation-first discovery, and their limited effectiveness for this corpus reinforces the ethnography-first principle.
+**The gradient:** LLM involvement ranges from zero (hand-built tokenizers) through infrastructure (code writing, embedding, retrieval) through interpretation (enrichment) to analytical autonomy (semantic tagging, RAG synthesis). The fine-tuning step introduces a distinct register — **apprenticeship** — where the model was trained on the researcher's own analytical outputs, then deployed to replicate that style at scale. This is neither pure infrastructure nor autonomous analysis; it's the LLM learning to think *like the researcher*, from examples the researcher produced. The dissertation's core argument is that the most valuable uses kept ethnographic judgment in the loop — the LLM amplified human categories rather than replacing them. Fine-tuning literalizes this: the model's training data *is* the researcher's judgment, frozen and scaled. The experimental RAG features (semantic search + Ask LLM) represent an attempt to push toward computation-first discovery, and their limited effectiveness for this corpus reinforces the ethnography-first principle.
 
 ---
 
@@ -794,8 +837,20 @@ The semantic search is the other case — and it revealed the cost of letting co
 | `tagged jsonsv4/` | 114 files | 1.2 GB | V4-tagged output (word boundaries enforced) |
 | `tagged_semantic_v1/` | 233 files | 1.3 GB | Semantic tagging output |
 | `merged_tags_final/` | 114 files | 1.3 GB | Combined regex + semantic tags |
-| `enriched_final/llm_enrich.py` | Enrichment script | ~4 KB | GPT-4 enrichment per tag theme |
-| `enriched_final/enriched jsons/` | 18 parts | 164 MB | LLM-enriched tweets |
+| `enriched_final/llm_enrich.py` | Enrichment script | ~4 KB | GPT-4.1 enrichment prototype (vanilla, sequential) |
+| **Fine-tuning pipeline** | `scripts_misc/fine-tune llm enrich/` | | **Production enrichment system** |
+| `prepare_llm_enrichment_csv.py` | Fine-tune dir | ~3 KB | Extract 79,452 tweets → training CSV |
+| `llm_enrichment_dataset_chat.jsonl` | Fine-tune dir | ~2 MB | 1,964 training examples in chat format |
+| `train_model.py` | Fine-tune dir | ~2 KB | Fine-tuning job creation (OpenAI API) |
+| `check_training.py` | Fine-tune dir | ~1 KB | Job status monitoring |
+| `batch_llm_enrichment.py` | Fine-tune dir | ~4 KB | GPT-3.5 fine-tuned inference (25K tweets) |
+| `batch_llm_enrichment_gpt4.py` | Fine-tune dir | ~4 KB | GPT-4.1 fine-tuned inference (79K tweets, 10 workers) |
+| `compare_gpt_enrichment.py` | Fine-tune dir | ~3 KB | Side-by-side quality comparison → Excel |
+| `update_llm_enrichment_to_master.py` | Fine-tune dir | ~3 KB | Merge GPT-4.1 enrichments → master JSONs |
+| `enriched_tweets.jsonl` | Fine-tune dir | 93 MB | GPT-3.5 fine-tuned output (25K tweets) |
+| `enriched_tweets_gpt41.jsonl` | Fine-tune dir | 84 MB | GPT-4.1 fine-tuned output (79K tweets) — **production data** |
+| `enrichment_comparison.xlsx` | Fine-tune dir | 731 KB | GPT-3.5 vs GPT-4.1 quality comparison |
+| `enriched_final/enriched jsons/` | 18 parts | 164 MB | Final enriched tweets (from fine-tuned GPT-4.1) |
 | `misc/image/image_embed_async.py` | Image pipeline | ~8 KB | Async GPT-4o-mini vision captioning |
 | `vision_batches/` | 66 files | 602 MB | Vision API output |
 | `misc/local embedding/build_local_vector_store.py` | Vector build | ~8 KB | FAISS + SQLite construction |
