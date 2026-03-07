@@ -1,3 +1,8 @@
+---
+type: spec-prompts
+project: tweet-explorer
+date: 2026-02-08
+---
 # Tweet Explorer — Prompts
 
 > Project-specific commands that complement global macros.

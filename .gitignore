@@ -2,6 +2,10 @@
 backend/data/tweets.db
 backend/data/tweets.index
 backend/data/id_map.json
+backend/data/*_backup.db
+
+# Claude Code
+.claude/
 
 # Python
 backend/venv/

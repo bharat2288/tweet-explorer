@@ -1,4 +1,10 @@
-# Tweet Explorer — Design
+---
+type: design
+project: tweet-explorer
+date: 2026-02-08
+---
+# [[tweet-explorer-home|Tweet Explorer]] — Design
+*[[dev-hub|Hub]]*
 
 > Living document: what we're building and why.
 > Update when scope changes, architecture evolves, or constraints are discovered.

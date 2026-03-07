@@ -1,4 +1,10 @@
-# Tweet Explorer — Status
+---
+type: status
+project: tweet-explorer
+date: 2026-02-12
+---
+# [[tweet-explorer-home|Tweet Explorer]] — Status
+*[[dev-hub|Hub]]*
 
 > Session continuity document. Claude Code updates this at end of each session.
 > Read this first to know where we are.
