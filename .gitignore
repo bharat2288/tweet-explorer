@@ -4,6 +4,9 @@ backend/data/tweets.index
 backend/data/id_map.json
 backend/data/*_backup.db
 
+# Specs (synced via session workflow, not git)
+specs/
+
 # Claude Code
 .claude/
 
