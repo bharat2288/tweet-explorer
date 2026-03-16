@@ -100,10 +100,14 @@ logger.info("LLM provider: %s, model: %s", LLM_PROVIDER, LLM_MODEL)
 # FastAPI App
 # ---------------------------------------------------------------------------
 
+_debug = os.getenv("DEBUG", "").lower() in ("1", "true", "yes")
 app = FastAPI(
     title="Tweet Explorer API",
     description="Semantic search and LLM analysis over a crypto Twitter corpus.",
     version="1.0.0",
+    docs_url="/docs" if _debug else None,
+    redoc_url="/redoc" if _debug else None,
+    openapi_url="/openapi.json" if _debug else None,
 )
 
 app.add_middleware(
