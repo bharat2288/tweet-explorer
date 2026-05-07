@@ -42,3 +42,7 @@ desktop.ini
 
 # Logs
 *.log
+
+# Canonical specs live in the private dev-specs repo
+specs/
+*-home.md
